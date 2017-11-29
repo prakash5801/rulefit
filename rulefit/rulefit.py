@@ -314,20 +314,20 @@ class RuleFit(BaseEstimator, TransformerMixin):
                  tree_generator=None,
                 rfmode='regress',lin_trim_quantile=0.025,
                 lin_standardise=True, exp_rand_tree_size=True,
-                model_type='rl',Cs=None,cv=3,random_state=None):
+                model_type='rl',Cs=None,cv=3,n_estimators_default=None, random_state=None):
         self.tree_generator = tree_generator
         self.rfmode=rfmode
         self.lin_trim_quantile=lin_trim_quantile
         self.lin_standardise=lin_standardise
         self.friedscale=FriedScale(trim_quantile=lin_trim_quantile)
         self.exp_rand_tree_size=exp_rand_tree_size
-        self.max_rules=max_rules
         self.sample_fract=sample_fract 
         self.max_rules=max_rules
         self.memory_par=memory_par
         self.tree_size=tree_size
         self.random_state=random_state
         self.model_type=model_type
+        self.n_estimators_default=n_estimators_default
         self.cv=cv
         self.Cs=Cs
         
@@ -344,7 +344,10 @@ class RuleFit(BaseEstimator, TransformerMixin):
         if 'r' in self.model_type:
             ## initialise tree generator
             if self.tree_generator is None:
-                n_estimators_default=int(np.ceil(self.max_rules/self.tree_size))
+                if self.n_estimators_default is None:
+                    n_estimators_default=int(np.ceil(self.max_rules/self.tree_size))
+                else:
+                    n_estimators_default=self.n_estimators_default
                 self.sample_fract_=min(0.5,(100+6*np.sqrt(N))/N)
                 if   self.rfmode=='regress':
                     self.tree_generator = GradientBoostingRegressor(n_estimators=n_estimators_default, max_leaf_nodes=self.tree_size, learning_rate=self.memory_par,subsample=self.sample_fract_,random_state=self.random_state,max_depth=100)
